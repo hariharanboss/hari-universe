@@ -6,6 +6,7 @@ import Mars from './Mars';
 import Jupiter from './Jupiter';
 import Saturn from './Saturn';
 import Uranus from './Uranus';
+import Neptune from './Neptune';
 
 export default function SolarSystem() {
   return (
@@ -18,6 +19,7 @@ export default function SolarSystem() {
       <Jupiter />
       <Saturn />
       <Uranus />
+      <Neptune />
     </group>
   );
 }
