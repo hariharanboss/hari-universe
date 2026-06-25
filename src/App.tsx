@@ -1,18 +1,20 @@
 import React from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import CinematicCamera from './components/CinematicCamera';
 import Starfield from './components/Starfield';
+import SpaceDust from './components/SpaceDust';
 import SolarSystem from './components/SolarSystem';
 
 export default function App() {
   return (
     <Canvas
       style={{ width: '100vw', height: '100vh', background: 'black' }}
-      camera={{ fov: 60, near: 0.1, far: 1000, position: [0, 12, 30] }}
+      camera={{ fov: 60, near: 0.1, far: 1000, position: [80, 55, 120] }}
     >
-      <OrbitControls minDistance={3} maxDistance={150} enablePan={false} />
+      <CinematicCamera />
       <ambientLight intensity={0.2} />
       <Starfield />
+      <SpaceDust />
       <SolarSystem />
     </Canvas>
   );

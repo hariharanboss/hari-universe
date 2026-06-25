@@ -2,11 +2,15 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { SphereGeometry, BufferAttribute } from 'three';
 import type { Group, Mesh } from 'three';
+import Selectable from './Selectable';
+import { BODIES } from '../store/bodies';
 
 const ORBIT_RADIUS  = 60;
 const URANUS_RADIUS = 0.46;
 const ORBIT_SPEED   = 0.006; // rad/s — Kepler: 2.91 / 60^1.5 ≈ 0.0063
-const SPIN_SPEED    = 0.20;  // rad/s — Uranus day ≈ 17.2 h, slower than Saturn's 10.7 h
+const SPIN_SPEED    = 0.20;  // rad/s — Uranus day ≈ 17.2 h, slower than Saturn
+const URANUS_TILT   = 97.77 * Math.PI / 180; // 97.77° — nearly 90°, rolls on its side
+const INITIAL_ORBIT = 0.3;   // rad — starting orbital angle's 10.7 h
 
 function buildUranusGeometry() {
   const geo   = new SphereGeometry(URANUS_RADIUS, 48, 48);
@@ -99,10 +103,16 @@ export default function Uranus() {
 
   return (
     <group>
-      <group ref={orbitRef}>
-        <mesh ref={meshRef} position={[ORBIT_RADIUS, 0, 0]} geometry={geometry}>
-          <meshStandardMaterial vertexColors roughness={0.40} metalness={0.05} />
-        </mesh>
+      <group ref={orbitRef} rotation={[0, INITIAL_ORBIT, 0]}>
+        <group position={[ORBIT_RADIUS, 0, 0]}>
+          <group rotation={[0, 0, URANUS_TILT]}>
+            <Selectable body={BODIES.URANUS}>
+              <mesh ref={meshRef} geometry={geometry}>
+                <meshStandardMaterial vertexColors roughness={0.58} metalness={0.0} />
+              </mesh>
+            </Selectable>
+          </group>
+        </group>
       </group>
     </group>
   );

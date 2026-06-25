@@ -2,11 +2,14 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { SphereGeometry, BufferAttribute } from 'three';
 import type { Group, Mesh } from 'three';
+import Selectable from './Selectable';
+import { BODIES } from '../store/bodies';
 
 const ORBIT_RADIUS   = 6;
 const MERCURY_RADIUS = 0.1;   // ~50 % smaller than before
 const ORBIT_SPEED    = 0.20;  // rad/s
 const SPIN_SPEED     = 0.05;  // rad/s
+const INITIAL_ORBIT  = 0.8;   // rad — starting orbital angle
 
 function buildMercuryGeometry() {
   const geo = new SphereGeometry(MERCURY_RADIUS, 32, 32);
@@ -62,10 +65,14 @@ export default function Mercury() {
 
   return (
     <group>
-      <group ref={orbitRef}>
-        <mesh ref={meshRef} position={[ORBIT_RADIUS, 0, 0]} geometry={geometry}>
-          <meshStandardMaterial vertexColors roughness={0.9} metalness={0.05} />
-        </mesh>
+      <group ref={orbitRef} rotation={[0, INITIAL_ORBIT, 0]}>
+        <group position={[ORBIT_RADIUS, 0, 0]}>
+          <Selectable body={BODIES.MERCURY}>
+            <mesh ref={meshRef} geometry={geometry}>
+              <meshStandardMaterial vertexColors roughness={0.95} metalness={0.0} />
+            </mesh>
+          </Selectable>
+        </group>
       </group>
     </group>
   );

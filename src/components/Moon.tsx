@@ -2,6 +2,8 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { SphereGeometry, BufferAttribute } from 'three';
 import type { Group, Mesh } from 'three';
+import Selectable from './Selectable';
+import { BODIES } from '../store/bodies';
 
 const MOON_ORBIT_RADIUS = 0.55;
 const MOON_RADIUS       = 0.06;   // ~27 % of Earth radius — real ratio
@@ -68,11 +70,14 @@ export default function Moon() {
 
   return (
     <group>
-      {/* Orbital group — Y-rotation orbits the Moon around Earth */}
       <group ref={orbitRef}>
-        <mesh ref={meshRef} position={[MOON_ORBIT_RADIUS, 0, 0]} geometry={geometry}>
-          <meshStandardMaterial vertexColors roughness={0.9} metalness={0.0} />
-        </mesh>
+        <group position={[MOON_ORBIT_RADIUS, 0, 0]}>
+          <Selectable body={BODIES.MOON}>
+            <mesh ref={meshRef} geometry={geometry}>
+              <meshStandardMaterial vertexColors roughness={0.95} metalness={0.0} />
+            </mesh>
+          </Selectable>
+        </group>
       </group>
     </group>
   );

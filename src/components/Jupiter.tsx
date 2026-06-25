@@ -2,11 +2,16 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { SphereGeometry, BufferAttribute } from 'three';
 import type { Group, Mesh } from 'three';
+import Selectable from './Selectable';
+import { BODIES } from '../store/bodies';
 
 const ORBIT_RADIUS   = 30;
 const JUPITER_RADIUS = 0.60;
 const ORBIT_SPEED    = 0.018; // rad/s — Kepler: 0.07 * (12/30)^1.5 ≈ 0.018
 const SPIN_SPEED     = 0.35;  // rad/s — Jupiter day ≈ 9.9 h, ~2.4× faster than Earth
+const JUPITER_TILT   = 3.13 * Math.PI / 180; // 3.13° — small but real axial tilt
+const INITIAL_ORBIT  = 0.2;   // rad — starting orbital angle
+const GRS_INITIAL_Y  = 1.65;  // rad — pre-rotates GRS toward default camera angle
 
 function buildJupiterGeometry() {
   const geo   = new SphereGeometry(JUPITER_RADIUS, 64, 64);
@@ -175,10 +180,16 @@ export default function Jupiter() {
 
   return (
     <group>
-      <group ref={orbitRef}>
-        <mesh ref={meshRef} position={[ORBIT_RADIUS, 0, 0]} geometry={geometry}>
-          <meshStandardMaterial vertexColors roughness={0.55} metalness={0.0} />
-        </mesh>
+      <group ref={orbitRef} rotation={[0, INITIAL_ORBIT, 0]}>
+        <group position={[ORBIT_RADIUS, 0, 0]}>
+          <group rotation={[0, 0, JUPITER_TILT]}>
+            <Selectable body={BODIES.JUPITER}>
+              <mesh ref={meshRef} rotation={[0, GRS_INITIAL_Y, 0]} geometry={geometry}>
+                <meshStandardMaterial vertexColors roughness={0.65} metalness={0.0} />
+              </mesh>
+            </Selectable>
+          </group>
+        </group>
       </group>
     </group>
   );

@@ -2,11 +2,15 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { SphereGeometry, BufferAttribute } from 'three';
 import type { Group, Mesh } from 'three';
+import Selectable from './Selectable';
+import { BODIES } from '../store/bodies';
 
 const ORBIT_RADIUS = 18;
 const MARS_RADIUS  = 0.14;
-const ORBIT_SPEED  = 0.04;  // rad/s — Kepler: 0.07 * (12/18)^1.5 ≈ 0.038
-const SPIN_SPEED   = 0.14;  // rad/s — Mars day ≈ 24.6 h, close to Earth
+const ORBIT_SPEED   = 0.04;  // rad/s — Kepler: 0.07 * (12/18)^1.5 ≈ 0.038
+const SPIN_SPEED    = 0.14;  // rad/s — Mars day ≈ 24.6 h, close to Earth
+const MARS_TILT     = 25.19 * Math.PI / 180; // 25.19° obliquity — very similar to Earth
+const INITIAL_ORBIT = 3.8;   // rad — starting orbital angle
 
 function buildMarsGeometry() {
   const geo   = new SphereGeometry(MARS_RADIUS, 36, 36);
@@ -67,10 +71,16 @@ export default function Mars() {
 
   return (
     <group>
-      <group ref={orbitRef}>
-        <mesh ref={meshRef} position={[ORBIT_RADIUS, 0, 0]} geometry={geometry}>
-          <meshStandardMaterial vertexColors roughness={0.9} metalness={0.0} />
-        </mesh>
+      <group ref={orbitRef} rotation={[0, INITIAL_ORBIT, 0]}>
+        <group position={[ORBIT_RADIUS, 0, 0]}>
+          <group rotation={[0, 0, MARS_TILT]}>
+            <Selectable body={BODIES.MARS}>
+              <mesh ref={meshRef} geometry={geometry}>
+                <meshStandardMaterial vertexColors roughness={0.92} metalness={0.0} />
+              </mesh>
+            </Selectable>
+          </group>
+        </group>
       </group>
     </group>
   );

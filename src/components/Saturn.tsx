@@ -2,14 +2,15 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { SphereGeometry, BufferAttribute, DoubleSide } from 'three';
 import type { Group, Mesh } from 'three';
+import Selectable from './Selectable';
+import { BODIES } from '../store/bodies';
 
 const ORBIT_RADIUS  = 44;
 const SATURN_RADIUS = 0.52;
 const ORBIT_SPEED   = 0.010; // rad/s — Kepler: 0.07 * (12/44)^1.5 ≈ 0.010
 const SPIN_SPEED    = 0.32;  // rad/s — Saturn day ≈ 10.7 h, slightly slower than Jupiter
-
-// Lay RingGeometry flat (−π/2: XY→XZ), then add 27° axial tilt
-const RING_TILT = -Math.PI / 2 + 0.47;
+const SATURN_TILT   = 26.73 * Math.PI / 180; // 26.73° obliquity — shared by body and rings
+const INITIAL_ORBIT = 3.4;   // rad — starting orbital angle
 
 function buildSaturnGeometry() {
   const geo   = new SphereGeometry(SATURN_RADIUS, 56, 56);
@@ -109,55 +110,59 @@ export default function Saturn() {
 
   return (
     <group>
-      <group ref={orbitRef}>
+      <group ref={orbitRef} rotation={[0, INITIAL_ORBIT, 0]}>
         <group position={[ORBIT_RADIUS, 0, 0]}>
 
-          {/* Saturn body — spins on Y axis */}
-          <mesh ref={meshRef} geometry={geometry}>
-            <meshStandardMaterial vertexColors roughness={0.60} metalness={0.0} />
-          </mesh>
+          <group rotation={[0, 0, SATURN_TILT]}>
+            {/* Body + rings share one Selectable — hovering either selects Saturn */}
+            <Selectable body={BODIES.SATURN}>
 
-          {/* Ring system — tilted to simulate Saturn's 27° axial tilt.
-              RingGeometry lies in the XY plane; RING_TILT rotates it to XZ then
-              applies the axial tilt. DoubleSide makes both faces render. */}
-          <group rotation={[RING_TILT, 0, 0.1]}>
-
-            {/* Inner ring — C-ring equivalent: dim, close to planet */}
-            <mesh>
-              <ringGeometry args={[0.72, 0.88, 128]} />
-              <meshBasicMaterial
-                color="#847060"
-                transparent
-                opacity={0.28}
-                side={DoubleSide}
-                depthWrite={false}
-              />
+            {/* Saturn body — spins on the now-tilted Y axis */}
+            <mesh ref={meshRef} geometry={geometry}>
+              <meshStandardMaterial vertexColors roughness={0.65} metalness={0.0} />
             </mesh>
 
-            {/* Main ring — B-ring equivalent: brightest, widest */}
-            <mesh>
-              <ringGeometry args={[0.90, 1.20, 128]} />
-              <meshBasicMaterial
-                color="#c0b698"
-                transparent
-                opacity={0.62}
-                side={DoubleSide}
-                depthWrite={false}
-              />
-            </mesh>
+            <group rotation={[-Math.PI / 2, 0, 0.1]}>
 
-            {/* Outer ring — A-ring equivalent: mid brightness, gap after main */}
-            <mesh>
-              <ringGeometry args={[1.22, 1.42, 128]} />
-              <meshBasicMaterial
-                color="#9e9280"
-                transparent
-                opacity={0.36}
-                side={DoubleSide}
-                depthWrite={false}
-              />
-            </mesh>
+              {/* Inner ring — C-ring equivalent: dim, close to planet */}
+              <mesh>
+                <ringGeometry args={[0.72, 0.88, 128]} />
+                <meshBasicMaterial
+                  color="#847060"
+                  transparent
+                  opacity={0.28}
+                  side={DoubleSide}
+                  depthWrite={false}
+                />
+              </mesh>
 
+              {/* Main ring — B-ring equivalent: brightest, widest */}
+              <mesh>
+                <ringGeometry args={[0.90, 1.20, 128]} />
+                <meshBasicMaterial
+                  color="#c0b698"
+                  transparent
+                  opacity={0.62}
+                  side={DoubleSide}
+                  depthWrite={false}
+                />
+              </mesh>
+
+              {/* Outer ring — A-ring equivalent: mid brightness, gap after main */}
+              <mesh>
+                <ringGeometry args={[1.22, 1.42, 128]} />
+                <meshBasicMaterial
+                  color="#9e9280"
+                  transparent
+                  opacity={0.36}
+                  side={DoubleSide}
+                  depthWrite={false}
+                />
+              </mesh>
+
+            </group>
+
+            </Selectable>
           </group>
         </group>
       </group>

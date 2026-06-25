@@ -2,11 +2,15 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { SphereGeometry, BufferAttribute } from 'three';
 import type { Group, Mesh } from 'three';
+import Selectable from './Selectable';
+import { BODIES } from '../store/bodies';
 
 const ORBIT_RADIUS   = 80;
 const NEPTUNE_RADIUS = 0.45;
 const ORBIT_SPEED    = 0.004; // rad/s — Kepler: 2.91 / 80^1.5 ≈ 0.0041
 const SPIN_SPEED     = 0.22;  // rad/s — Neptune day ≈ 16.1 h, slightly faster than Uranus
+const NEPTUNE_TILT   = 28.32 * Math.PI / 180; // 28.32° obliquity
+const INITIAL_ORBIT  = 0.1;   // rad — starting orbital angle
 
 // Great Dark Spot — dark vortex at southern mid-latitude
 const GDS_LAT   = -0.37;
@@ -153,10 +157,16 @@ export default function Neptune() {
 
   return (
     <group>
-      <group ref={orbitRef}>
-        <mesh ref={meshRef} position={[ORBIT_RADIUS, 0, 0]} geometry={geometry}>
-          <meshStandardMaterial vertexColors roughness={0.35} metalness={0.05} />
-        </mesh>
+      <group ref={orbitRef} rotation={[0, INITIAL_ORBIT, 0]}>
+        <group position={[ORBIT_RADIUS, 0, 0]}>
+          <group rotation={[0, 0, NEPTUNE_TILT]}>
+            <Selectable body={BODIES.NEPTUNE}>
+              <mesh ref={meshRef} geometry={geometry}>
+                <meshStandardMaterial vertexColors roughness={0.52} metalness={0.0} />
+              </mesh>
+            </Selectable>
+          </group>
+        </group>
       </group>
     </group>
   );

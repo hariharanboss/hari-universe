@@ -3,12 +3,17 @@ import { useFrame } from '@react-three/fiber';
 import { SphereGeometry, BufferAttribute, AdditiveBlending } from 'three';
 import type { Group, Mesh } from 'three';
 import Moon from './Moon';
+import Selectable from './Selectable';
+import { BODIES } from '../store/bodies';
 
 const ORBIT_RADIUS = 12;
 const EARTH_RADIUS = 0.22;
 const ATMO_RADIUS  = EARTH_RADIUS * 1.18;
-const ORBIT_SPEED  = 0.07;   // rad/s — Kepler-scaled slower than Mercury
-const SPIN_SPEED   = 0.15;   // rad/s — axial rotation
+const ORBIT_SPEED     = 0.07;   // rad/s — Kepler-scaled slower than Mercury
+const SPIN_SPEED      = 0.15;   // rad/s — axial rotation
+const EARTH_TILT      = 23.44 * Math.PI / 180; // 23.44° obliquity
+const MOON_PLANE_TILT = 5.14  * Math.PI / 180; // 5.14° inclination relative to Earth's equator
+const INITIAL_ORBIT   = 5.0;                    // rad — starting orbital angle
 
 const atmoVert = /* glsl */`
   varying vec3 vNormal;
@@ -28,7 +33,7 @@ const atmoFrag = /* glsl */`
 
   void main() {
     float rim   = 1.0 - max(dot(vNormal, vViewDir), 0.0);
-    float alpha = pow(rim, 3.5) * 0.65;
+    float alpha = pow(rim, 3.0) * 0.68;
     gl_FragColor = vec4(0.3, 0.6, 1.0, alpha);
   }
 `;
@@ -100,31 +105,37 @@ export default function Earth() {
   return (
     <group>
       {/* Orbital group — rotates around Y to orbit the Sun */}
-      <group ref={orbitRef}>
+      <group ref={orbitRef} rotation={[0, INITIAL_ORBIT, 0]}>
 
-        {/* Position sub-group keeps Earth + atmosphere locked together */}
+        {/* Position sub-group keeps the whole Earth system at orbit radius */}
         <group position={[ORBIT_RADIUS, 0, 0]}>
 
-          {/* Earth sphere — spins independently */}
-          <mesh ref={meshRef} geometry={geometry}>
-            <meshStandardMaterial vertexColors roughness={0.8} metalness={0.0} />
-          </mesh>
+          {/* Axial tilt — everything below inherits Earth's 23.44° obliquity */}
+          <group rotation={[0, 0, EARTH_TILT]}>
 
-          {/* Atmosphere — Fresnel rim, no spin needed (view-dependent shader) */}
-          <mesh>
-            <sphereGeometry args={[ATMO_RADIUS, 48, 48]} />
-            <shaderMaterial
-              vertexShader={atmoVert}
-              fragmentShader={atmoFrag}
-              transparent
-              depthWrite={false}
-              blending={AdditiveBlending}
-            />
-          </mesh>
+            {/* Earth body + atmosphere are selectable as one unit */}
+            <Selectable body={BODIES.EARTH}>
+              <mesh ref={meshRef} geometry={geometry}>
+                <meshStandardMaterial vertexColors roughness={0.72} metalness={0.0} />
+              </mesh>
+              <mesh>
+                <sphereGeometry args={[ATMO_RADIUS, 48, 48]} />
+                <shaderMaterial
+                  vertexShader={atmoVert}
+                  fragmentShader={atmoFrag}
+                  transparent
+                  depthWrite={false}
+                  blending={AdditiveBlending}
+                />
+              </mesh>
+            </Selectable>
 
-          {/* Moon — orbits Earth's local origin */}
-          <Moon />
+            {/* Moon orbital plane — outside Earth's Selectable; Moon has its own */}
+            <group rotation={[MOON_PLANE_TILT, 0, 0]}>
+              <Moon />
+            </group>
 
+          </group>
         </group>
       </group>
     </group>

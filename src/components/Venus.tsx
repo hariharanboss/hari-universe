@@ -2,11 +2,15 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { SphereGeometry, BufferAttribute } from 'three';
 import type { Group, Mesh } from 'three';
+import Selectable from './Selectable';
+import { BODIES } from '../store/bodies';
 
 const ORBIT_RADIUS  = 9;
 const VENUS_RADIUS  = 0.20;
 const ORBIT_SPEED   = 0.11;  // rad/s — Kepler: 0.20 * (6/9)^1.5 ≈ 0.11
 const SPIN_SPEED    = 0.08;  // rad/s
+const VENUS_TILT    = 177.4 * Math.PI / 180; // 177.4° retrograde — axis nearly inverted
+const INITIAL_ORBIT = 2.0;   // rad — starting orbital angle
 
 function buildVenusGeometry() {
   const geo   = new SphereGeometry(VENUS_RADIUS, 40, 40);
@@ -70,10 +74,16 @@ export default function Venus() {
 
   return (
     <group>
-      <group ref={orbitRef}>
-        <mesh ref={meshRef} position={[ORBIT_RADIUS, 0, 0]} geometry={geometry}>
-          <meshStandardMaterial vertexColors roughness={0.75} metalness={0.0} />
-        </mesh>
+      <group ref={orbitRef} rotation={[0, INITIAL_ORBIT, 0]}>
+        <group position={[ORBIT_RADIUS, 0, 0]}>
+          <group rotation={[0, 0, VENUS_TILT]}>
+            <Selectable body={BODIES.VENUS}>
+              <mesh ref={meshRef} geometry={geometry}>
+                <meshStandardMaterial vertexColors roughness={0.80} metalness={0.0} />
+              </mesh>
+            </Selectable>
+          </group>
+        </group>
       </group>
     </group>
   );
